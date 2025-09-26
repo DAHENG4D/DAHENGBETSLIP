@@ -34,10 +34,10 @@ function addNewBidRow(number = '') {
     const tableBody = document.getElementById('biddingTableBody');
     const num = number.trim().padStart(4, '0'); // Ensure 4 digits
 
-    // Input validation
+    // Input validation (to be added later)
     // ...
 
-    // Check for duplicates
+    // Check for duplicates (to be added later)
     // ...
 
     // Create the new table row
@@ -154,8 +154,8 @@ function submitBids() {
     localStorage.setItem('daheng4dTotal', grandTotal.toFixed(2));
     
     // 3. Redirect the user to the receipt page
-    // NOTE: Replace 'OFFICIAL BET SLIP/index.html' with the actual path
-    window.location.href = 'OFFICIAL BET SLIP/index.html'; 
+    // *** FIXED PATH: Using relative path for local file system access. ***
+    window.location.href = 'official-bet-slip/index.html'; 
 }
 
 // Expose the function globally for a new submit button
