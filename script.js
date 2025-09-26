@@ -1,4 +1,43 @@
-// --- NEW FUNCTIONS FOR DYNAMIC BIDDING FORM ---
+// --- UTILITY FUNCTION FOR IBOX VARIATION (NEW) ---
+/**
+ * Calculates the IBOX permutation count for a 4-digit number.
+ * @param {string} number - The 4-digit number string.
+ * @returns {number} The permutation count (24, 12, 6, 4), or 0 if 1-way.
+ */
+function getIboxVariation(number) {
+    if (number.length !== 4) return 0;
+
+    const digits = number.split('');
+    const counts = {};
+    digits.forEach(d => {
+        counts[d] = (counts[d] || 0) + 1;
+    });
+
+    const uniqueCounts = Object.values(counts);
+
+    // Sort the unique counts to simplify pattern matching
+    uniqueCounts.sort((a, b) => b - a);
+
+    // 4 Different Digits: [1, 1, 1, 1] -> 24-Way
+    if (uniqueCounts.length === 4) return 24;
+
+    // 3 Different Digits: [2, 1, 1] (e.g., 1123) -> 12-Way
+    if (uniqueCounts.length === 3) return 12;
+
+    // 2 Different Digits:
+    if (uniqueCounts.length === 2) {
+        // [3, 1] (e.g., 1112) -> 4-Way
+        if (uniqueCounts[0] === 3) return 4;
+        // [2, 2] (e.g., 1122) -> 6-Way
+        if (uniqueCounts[0] === 2) return 6;
+    }
+
+    // 1 Different Digit: [4] (e.g., 1111) -> 1-Way (IBOX not applicable)
+    return 0; 
+}
+
+
+// --- FUNCTIONS FOR DYNAMIC BIDDING FORM ---
 
 // Global variable to track the total amount
 let totalBiddingAmount = 0.00;
@@ -8,7 +47,7 @@ let totalBiddingAmount = 0.00;
  */
 function calculateTotal() {
     let currentTotal = 0.00;
-    // Select all Big and Small bid input fields
+    // Select all bid input fields
     const bidInputs = document.querySelectorAll('.bid-input');
 
     // Sum up the values
@@ -35,17 +74,11 @@ function addNewBidRow(number = '') {
     const tableBody = document.getElementById('biddingTableBody');
     const num = number.trim().padStart(4, '0'); // Ensure 4 digits
 
-    // Input validation (to be added later)
-    // ...
-
-    // Check for duplicates (to be added later)
-    // ...
-
     // Create the new table row
     const newRow = tableBody.insertRow();
     newRow.setAttribute('data-number', num);
 
-    // KEY UPDATE: Changed value="0" to value="" to make the volume box empty by default
+    // IBOX columns already added in previous step
     newRow.innerHTML = `
         <td class="bid-number-cell">
             <button type="button" class="btn btn-secondary btn-remove" onclick="removeBidRow(this)">
@@ -58,6 +91,12 @@ function addNewBidRow(number = '') {
         </td>
         <td>
             <input type="number" class="bid-input" data-type="small" min="1" step="1" value="" onchange="calculateTotal()" onkeyup="calculateTotal()">
+        </td>
+        <td>
+            <input type="number" class="bid-input" data-type="big-ibox" min="1" step="1" value="" onchange="calculateTotal()" onkeyup="calculateTotal()">
+        </td>
+        <td>
+            <input type="number" class="bid-input" data-type="small-ibox" min="1" step="1" value="" onchange="calculateTotal()" onkeyup="calculateTotal()">
         </td>
     `;
     
@@ -109,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- NEW FUNCTION TO COLLECT AND STORE BIDS ---
+// --- FUNCTION TO COLLECT AND STORE BIDS (UPDATED) ---
 
 /**
  * Collects all current bids, stores them in localStorage, and redirects to the receipt page.
@@ -123,16 +162,24 @@ function submitBids() {
     
     tableRows.forEach(row => {
         const number = row.getAttribute('data-number');
+        // Get the IBOX variation count for the current number
+        const iboxVariation = getIboxVariation(number); 
+        
+        // Get all four input fields
         const bigInput = row.querySelector('.bid-input[data-type="big"]');
         const smallInput = row.querySelector('.bid-input[data-type="small"]');
+        const bigIboxInput = row.querySelector('.bid-input[data-type="big-ibox"]');
+        const smallIboxInput = row.querySelector('.bid-input[data-type="small-ibox"]');
         
-        // Use parseInt to ensure the volume is an integer, and handle empty strings as 0
+        // Convert to integer, default to 0
         const bigAmount = parseInt(bigInput.value) || 0;
         const smallAmount = parseInt(smallInput.value) || 0;
+        const bigIboxAmount = parseInt(bigIboxInput.value) || 0;
+        const smallIboxAmount = parseInt(smallIboxInput.value) || 0;
         
-        grandTotal += bigAmount + smallAmount;
+        grandTotal += bigAmount + smallAmount + bigIboxAmount + smallIboxAmount;
 
-        // Add BIG bid if amount > 0
+        // Add BIG/SML bids (Type is static)
         if (bigAmount > 0) {
             bids.push({
                 number: number,
@@ -140,13 +187,32 @@ function submitBids() {
                 amount: bigAmount.toFixed(2)
             });
         }
-        
-        // Add SML bid if amount > 0
         if (smallAmount > 0) {
             bids.push({
                 number: number,
                 type: 'SML',
                 amount: smallAmount.toFixed(2)
+            });
+        }
+        
+        // Determine the type string for IBOX - only append suffix if > 1 variation
+        let iboxTypeSuffix = (iboxVariation > 1) ? `(${iboxVariation})` : '';
+        
+        // Add BIG IBOX bid
+        if (bigIboxAmount > 0) {
+            bids.push({
+                number: number,
+                type: `BIG IBOX${iboxTypeSuffix}`, // Append variation
+                amount: bigIboxAmount.toFixed(2)
+            });
+        }
+        
+        // Add SML IBOX bid
+        if (smallIboxAmount > 0) {
+            bids.push({
+                number: number,
+                type: `SML IBOX${iboxTypeSuffix}`, // Append variation
+                amount: smallIboxAmount.toFixed(2)
             });
         }
     });
@@ -156,7 +222,6 @@ function submitBids() {
     localStorage.setItem('daheng4dTotal', grandTotal.toFixed(2));
     
     // 3. Redirect the user to the receipt page
-    // *** FIXED PATH: Using relative path for local file system access. ***
     window.location.href = 'official-bet-slip/index.html'; 
 }
 
