@@ -171,35 +171,6 @@
             color: #000000; 
             margin-right: 5px;
         }
-
-        /* --- NEW: Image Container Style --- */
-        #generatedImageContainer {
-            display: none; /* Hidden by default */
-            max-width: 420px;
-            width: 100%;
-            background-color: #ffffff;
-            padding: 0;
-            text-align: center; /* Center the prompt and image */
-        }
-
-        #generatedImageContainer img {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 5px;
-            /* Allow long-press to save on mobile devices */
-            touch-action: manipulation; 
-            /* Added a subtle border to mimic the original slip definition */
-            border: 1px solid #ddd;
-        }
-
-        .save-prompt {
-            text-align: center;
-            margin: 20px 0 10px; /* Added spacing */
-            font-size: 1.1em;
-            font-weight: 700;
-            color: #1a237e;
-        }
     </style>
 </head>
 <body>
@@ -252,13 +223,11 @@
             </footer>
         </div>
         
-        <button id="downloadSlipBtn" type="button" class="btn-download" onclick="captureAndDisplayImage()">
+        <button id="downloadSlipBtn" type="button" class="btn-download" onclick="captureAndDownload()">
             <i class="fas fa-download"></i> Download Slip
         </button>
     </div>
 
-    <div id="generatedImageContainer">
-    </div>
     <script>
         // --- Utility Functions (Unchanged) ---
         function generateTerminalId() {
@@ -299,50 +268,33 @@
             return `${weekday} ${day}-${month}-${year}`;
         }
         
-        // --- NEW/UPDATED FUNCTION TO CAPTURE AND DISPLAY THE IMAGE ---
-        function captureAndDisplayImage() {
+        // --- RESTORED FUNCTION TO CAPTURE AND INITIATE DOWNLOAD ---
+        function captureAndDownload() {
             const receipt = document.getElementById('receiptContainer'); 
-            const originalContent = document.getElementById('originalContent');
-            const imageContainer = document.getElementById('generatedImageContainer');
             
+            // Temporarily set the body to white during capture
             const originalBodyBackground = document.body.style.backgroundColor;
             document.body.style.backgroundColor = '#ffffff'; 
 
             html2canvas(receipt, { 
                 scale: 3, 
                 useCORS: true, 
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff' // Ensure canvas background is white
             }).then(canvas => {
-                // 1. Get the image data URL and filename
-                const imageDataUrl = canvas.toDataURL('image/png');
-                const fileName = 'Daheng4D_Bet_Slip_' + document.getElementById('receipt-no').textContent + '.png';
-
-                // 2. Hide the original content immediately
-                originalContent.style.display = 'none';
-
-                // 3. Clear container and create elements
-                imageContainer.innerHTML = '';
+                const link = document.createElement('a');
                 
-                const prompt = document.createElement('p');
-                prompt.className = 'save-prompt';
-                prompt.textContent = 'Long-press or right-click the image below to save it.';
-                imageContainer.appendChild(prompt);
-
-                const img = document.createElement('img');
-                img.src = imageDataUrl;
-                img.alt = 'Daheng 4D Bet Slip';
+                link.href = canvas.toDataURL('image/png');
                 
-                // Set the 'download' attribute, which is sometimes picked up by context menus
-                img.setAttribute('download', fileName); 
-
-                imageContainer.appendChild(img);
+                // Set the filename
+                link.download = 'Daheng4D_Bet_Slip_' + document.getElementById('receipt-no').textContent + '.png';
                 
-                // 4. Use setTimeout to ensure the DOM updates before displaying
-                setTimeout(() => {
-                    imageContainer.style.display = 'block';
-                    // Restore original body background after the DOM has updated
-                    document.body.style.backgroundColor = originalBodyBackground; 
-                }, 100); // A small delay (100ms) to ensure DOM registration
+                // Append, click (to trigger download), and remove
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Restore original body background after capture
+                document.body.style.backgroundColor = originalBodyBackground; 
             });
         }
         
@@ -399,7 +351,7 @@
             loadBidsAndDisplay();
 
             // Expose the function globally for the onclick attribute
-            window.captureAndDisplayImage = captureAndDisplayImage;
+            window.captureAndDownload = captureAndDownload;
         });
     </script>
 </body>
