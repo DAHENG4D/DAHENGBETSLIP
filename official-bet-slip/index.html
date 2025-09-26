@@ -143,18 +143,18 @@
             margin: 5px 0;
         }
         
-        /* --- UPDATED: Tiny White Download Button with Black Text --- */
+        /* --- Download Button Style (Tiny White with Black Text) --- */
         .btn-download {
-            margin-top: 10px; /* Reduced margin */
-            padding: 5px 10px; /* Very small padding */
-            font-size: 0.9em; /* Small font size */
+            margin-top: 10px; 
+            padding: 5px 10px; 
+            font-size: 0.9em; 
             font-weight: 500; 
-            color: #000000; /* Text Color: Black */
-            background-color: #ffffff; /* Button Background: White */
-            border: 1px solid #ccc; /* Added a subtle gray border for definition */
+            color: #000000; 
+            background-color: #ffffff; 
+            border: 1px solid #ccc; 
             border-radius: 5px;
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Very light shadow */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); 
             transition: background-color 0.2s, color 0.2s;
             width: auto; 
             display: block;
@@ -163,68 +163,100 @@
         }
         
         .btn-download:hover {
-            background-color: #f0f0f0; /* Very light gray on hover */
-            color: #3f51b5; /* Optional: Change color to blue on hover */
+            background-color: #f0f0f0; 
+            color: #3f51b5; 
         }
         
         .btn-download i {
-            color: #000000; /* Ensure the icon is also black */
+            color: #000000; 
             margin-right: 5px;
+        }
+
+        /* --- NEW: Image Container Style --- */
+        #generatedImageContainer {
+            display: none; /* Hidden by default */
+            max-width: 420px;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 0;
+        }
+
+        #generatedImageContainer img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 5px;
+            /* Allow long-press to save on mobile devices */
+            touch-action: manipulation; 
+        }
+
+        .save-prompt {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #1a237e;
         }
     </style>
 </head>
 <body>
-    <div class="receipt-container" id="receiptContainer">
-        <header class="receipt-header">
-            <img src="../4DLOGO-B.png" alt="DAHENG 4D Logo" class="logo">
-            <h1 class="brand-name">DAHENG 4D</h1>
-            <h2 class="receipt-title">Official Bet Slip</h2>
-        </header>
+    <div id="originalContent">
+        <div class="receipt-container" id="receiptContainer">
+            <header class="receipt-header">
+                <img src="../4DLOGO-B.png" alt="DAHENG 4D Logo" class="logo">
+                <h1 class="brand-name">DAHENG 4D</h1>
+                <h2 class="receipt-title">Official Bet Slip</h2>
+            </header>
 
-        <section class="receipt-details">
-            <div class="detail-item">
-                <span>Draw Date:</span>
-                <strong id="draw-date"></strong>
-            </div>
-            <div class="detail-item">
-                <span>Terminal ID:</span>
-                <strong id="terminal-id"></strong>
-            </div>
-            <div class="detail-item">
-                <span>Receipt No:</span>
-                <strong id="receipt-no"></strong>
-            </div>
-        </section>
+            <section class="receipt-details">
+                <div class="detail-item">
+                    <span>Draw Date:</span>
+                    <strong id="draw-date"></strong>
+                </div>
+                <div class="detail-item">
+                    <span>Terminal ID:</span>
+                    <strong id="terminal-id"></strong>
+                </div>
+                <div class="detail-item">
+                    <span>Receipt No:</span>
+                    <strong id="receipt-no"></strong>
+                </div>
+            </section>
 
-        <section class="bets-section">
-            <table class="bets-table">
-                <thead>
-                    <tr>
-                        <th>Number</th>
-                        <th>Bet Type</th>
-                        <th class="align-right">Amount (RM)</th>
-                    </tr>
-                </thead>
-                <tbody id="betsTableBody">
-                    </tbody>
-            </table>
-        </section>
+            <section class="bets-section">
+                <table class="bets-table">
+                    <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Bet Type</th>
+                            <th class="align-right">Amount (RM)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="betsTableBody">
+                        </tbody>
+                </table>
+            </section>
 
-        <section class="receipt-total">
-            <span>TOTAL:</span>
-            <strong id="finalTotalDisplay">RM 0.00</strong>
-        </section>
+            <section class="receipt-total">
+                <span>TOTAL:</span>
+                <strong id="finalTotalDisplay">RM 0.00</strong>
+            </section>
 
-        <footer class="receipt-footer">
-            <p>Thank you for playing with DAHENG 4D.</p>
-            <p><strong>Play Responsibly. For 18+ only.</strong></p>
-            <p>All prizes are subject to the Rules and Regulations of DAHENG 4D.</p>
-        </footer>
+            <footer class="receipt-footer">
+                <p>Thank you for playing with DAHENG 4D.</p>
+                <p><strong>Play Responsibly. For 18+ only.</strong></p>
+                <p>All prizes are subject to the Rules and Regulations of DAHENG 4D.</p>
+            </footer>
+        </div>
+        
+        <button id="downloadSlipBtn" type="button" class="btn-download" onclick="captureAndDisplayImage()">
+            <i class="fas fa-download"></i> Download Slip
+        </button>
     </div>
-    
-    <button id="downloadSlipBtn" type="button" class="btn-download" onclick="captureAndDownload()">
-        <i class="fas fa-download"></i> Download Slip
-    </button>
+
+    <div id="generatedImageContainer">
+        <p class="save-prompt">Long-press the image below to save it to your gallery.</p>
+    </div>
     <script>
         // --- Function to generate a random Terminal ID ---
         function generateTerminalId() {
@@ -267,36 +299,46 @@
             return `${weekday} ${day}-${month}-${year}`;
         }
         
-        // --- NEW FUNCTION TO CAPTURE AND DOWNLOAD THE IMAGE ---
-        function captureAndDownload() {
+        // --- UPDATED FUNCTION TO CAPTURE AND DISPLAY THE IMAGE ---
+        function captureAndDisplayImage() {
             const receipt = document.getElementById('receiptContainer'); 
+            const originalContent = document.getElementById('originalContent');
+            const imageContainer = document.getElementById('generatedImageContainer');
             
-            // html2canvas options: scale increases resolution
-            // Temporarily ensure the body is white during capture to avoid light gray background being captured
+            // Temporarily ensure the body is white during capture to avoid light gray background
             const originalBodyBackground = document.body.style.backgroundColor;
             document.body.style.backgroundColor = '#ffffff'; 
 
             html2canvas(receipt, { 
                 scale: 3, 
                 useCORS: true, 
-                backgroundColor: '#ffffff' // Ensure canvas background is white
+                backgroundColor: '#ffffff'
             }).then(canvas => {
-                const link = document.createElement('a');
+                // 1. Convert the canvas to an image element
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL('image/png');
+                img.alt = 'Daheng 4D Bet Slip';
                 
-                link.href = canvas.toDataURL('image/png');
+                // 2. Hide the original content
+                originalContent.style.display = 'none';
                 
-                link.download = 'Daheng4D_Bet_Slip_' + document.getElementById('receipt-no').textContent + '.png';
+                // 3. Clear previous content and display the new image
+                imageContainer.innerHTML = '';
                 
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                const prompt = document.createElement('p');
+                prompt.className = 'save-prompt';
+                prompt.textContent = 'Long-press or right-click the image below to save it.';
+                imageContainer.appendChild(prompt);
 
-                // Restore original body background after capture
+                imageContainer.appendChild(img);
+                imageContainer.style.display = 'block';
+
+                // Restore original body background after capture is complete
                 document.body.style.backgroundColor = originalBodyBackground; 
             });
         }
         
-        // --- FUNCTION TO LOAD AND DISPLAY BIDS ---
+        // --- FUNCTION TO LOAD AND DISPLAY BIDS (UNCHANGED) ---
         function loadBidsAndDisplay() {
             const bidsJson = localStorage.getItem('daheng4dBids');
             const totalAmount = localStorage.getItem('daheng4dTotal');
@@ -348,6 +390,9 @@
             }
             
             loadBidsAndDisplay();
+
+            // Expose the function globally for the onclick attribute
+            window.captureAndDisplayImage = captureAndDisplayImage;
         });
     </script>
 </body>
