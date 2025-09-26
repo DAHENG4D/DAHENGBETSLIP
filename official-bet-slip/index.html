@@ -7,16 +7,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script> 
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"/>
     
     <style>
         /* CSS for the receipt page */
         body {
-            background-color: #f0f2f5; /* Light grey background from main site */
-            font-family: 'Roboto Mono', monospace; /* Monospaced font for a receipt feel */
+            background-color: #f0f2f5; /* Light grey background for the webpage */
+            font-family: 'Roboto Mono', monospace; 
             color: #333;
             display: flex;
-            flex-direction: column; /* Allows content and button to stack */
+            flex-direction: column; 
             justify-content: center;
             align-items: center;
             padding: 30px 15px;
@@ -25,13 +27,14 @@
             margin: 0;
         }
 
+        /* --- White Box Design --- */
         .receipt-container {
-            background-color: #ffffff;
+            background-color: #ffffff; /* Explicitly set to White */
             width: 100%;
             max-width: 420px;
             padding: 25px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-            border: 1px solid #ddd;
+            box-shadow: none; 
+            border: none; 
         }
 
         .receipt-header {
@@ -39,6 +42,7 @@
             margin-bottom: 20px;
             padding-bottom: 20px;
             border-bottom: 2px dashed #ccc;
+            background-color: #ffffff; /* Explicitly ensure header has white background */
         }
 
         .logo {
@@ -50,7 +54,7 @@
         .brand-name {
             font-family: 'Oswald', sans-serif;
             font-size: 2em;
-            color: #1a237e; /* Dark blue from brand style */
+            color: #1a237e; /* Dark blue brand color for text, not background */
             margin: 0;
             line-height: 1.2;
         }
@@ -139,25 +143,33 @@
             margin: 5px 0;
         }
         
-        /* --- NEW: Image Download Button Style --- */
+        /* --- UPDATED: Tiny White Download Button with Black Text --- */
         .btn-download {
-            margin-top: 20px;
-            padding: 12px 25px;
-            font-size: 1.1em;
-            font-weight: 700;
-            color: #fff;
-            background-color: #1a237e; /* Dark Blue */
-            border: none;
+            margin-top: 10px; /* Reduced margin */
+            padding: 5px 10px; /* Very small padding */
+            font-size: 0.9em; /* Small font size */
+            font-weight: 500; 
+            color: #000000; /* Text Color: Black */
+            background-color: #ffffff; /* Button Background: White */
+            border: 1px solid #ccc; /* Added a subtle gray border for definition */
             border-radius: 5px;
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.2s;
-            width: 100%;
-            max-width: 420px; /* Matches receipt width */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Very light shadow */
+            transition: background-color 0.2s, color 0.2s;
+            width: auto; 
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .btn-download:hover {
-            background-color: #0d47a1;
+            background-color: #f0f0f0; /* Very light gray on hover */
+            color: #3f51b5; /* Optional: Change color to blue on hover */
+        }
+        
+        .btn-download i {
+            color: #000000; /* Ensure the icon is also black */
+            margin-right: 5px;
         }
     </style>
 </head>
@@ -211,20 +223,18 @@
     </div>
     
     <button id="downloadSlipBtn" type="button" class="btn-download" onclick="captureAndDownload()">
-        <i class="fas fa-camera"></i> Download Slip as Image (PNG)
+        <i class="fas fa-download"></i> Download Slip
     </button>
     <script>
         // --- Function to generate a random Terminal ID ---
         function generateTerminalId() {
             const prefix = 'KUL-T2-';
-            // Generate a random 4-digit number
             const randomNumber = Math.floor(1000 + Math.random() * 9000);
             return prefix + randomNumber;
         }
 
         // --- Function to generate a random Receipt No ---
         function generateReceiptNo() {
-            // Helper function to create a 4-character hex block
             const s4 = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1).toUpperCase();
             return `${s4()}-${s4()}-${s4()}-${s4()}`;
         }
@@ -239,7 +249,6 @@
                 timeZone: 'Asia/Kuala_Lumpur' // GMT+8
             };
             
-            // Format: Sat 27-09-2025
             const formatter = new Intl.DateTimeFormat('en-GB', dateOptions);
             const parts = formatter.formatToParts(new Date());
 
@@ -260,32 +269,35 @@
         
         // --- NEW FUNCTION TO CAPTURE AND DOWNLOAD THE IMAGE ---
         function captureAndDownload() {
-            // Select the element to capture
             const receipt = document.getElementById('receiptContainer'); 
             
-            // html2canvas options: scale increases resolution (better for download)
-            html2canvas(receipt, { scale: 3, useCORS: true }).then(canvas => {
+            // html2canvas options: scale increases resolution
+            // Temporarily ensure the body is white during capture to avoid light gray background being captured
+            const originalBodyBackground = document.body.style.backgroundColor;
+            document.body.style.backgroundColor = '#ffffff'; 
+
+            html2canvas(receipt, { 
+                scale: 3, 
+                useCORS: true, 
+                backgroundColor: '#ffffff' // Ensure canvas background is white
+            }).then(canvas => {
                 const link = document.createElement('a');
-                // Use canvas.toDataURL('image/jpeg', 0.9) if you want a JPG
-                // PNG is recommended for text clarity, but you asked for JPG so I'll show the alternative:
-                // link.href = canvas.toDataURL('image/jpeg', 0.9);
                 
-                // Using PNG (default and better for this content)
                 link.href = canvas.toDataURL('image/png');
                 
-                // Set the filename
                 link.download = 'Daheng4D_Bet_Slip_' + document.getElementById('receipt-no').textContent + '.png';
                 
-                // Trigger the download
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+
+                // Restore original body background after capture
+                document.body.style.backgroundColor = originalBodyBackground; 
             });
         }
         
         // --- FUNCTION TO LOAD AND DISPLAY BIDS ---
         function loadBidsAndDisplay() {
-            // Get the bid data and total from local storage
             const bidsJson = localStorage.getItem('daheng4dBids');
             const totalAmount = localStorage.getItem('daheng4dTotal');
             
@@ -295,13 +307,11 @@
             if (!tableBody || !finalTotalDisplay) return; 
 
             if (!bidsJson) {
-                // Display a message if no transaction data is found
-                tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No bets were placed for this receipt.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: red;">No bets were placed for this receipt.</td></tr>';
                 finalTotalDisplay.textContent = 'RM 0.00';
             } else {
                 const bids = JSON.parse(bidsJson);
                 
-                // Populate the table with dynamic data
                 tableBody.innerHTML = ''; 
                 bids.forEach(bid => {
                     const newRow = tableBody.insertRow();
@@ -312,7 +322,6 @@
                     `;
                 });
                 
-                // Update the total display
                 finalTotalDisplay.textContent = `RM ${totalAmount || '0.00'}`;
                 
                 // IMPORTANT: Clear storage after successful display to prevent stale data
@@ -322,7 +331,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // --- Update the static receipt elements ---
             const drawDateElement = document.getElementById('draw-date');
             const terminalIdElement = document.getElementById('terminal-id');
             const receiptNoElement = document.getElementById('receipt-no');
@@ -339,7 +347,6 @@
                 receiptNoElement.textContent = generateReceiptNo();
             }
             
-            // Call the new function to populate the table dynamically
             loadBidsAndDisplay();
         });
     </script>
