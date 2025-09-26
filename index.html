@@ -1,399 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DAHENG 4D - Bet Receipt</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
-    
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script> 
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>DAHENG 4D - New Bid Entry</title>
+    <link href="style.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&amp;family=Oswald:wght@700&amp;display=swap" rel="stylesheet"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"/>
-    
-    <style>
-        /* CSS for the receipt page */
-        body {
-            background-color: #f0f2f5; /* Light grey background for the webpage */
-            font-family: 'Roboto Mono', monospace; 
-            color: #333;
-            display: flex;
-            flex-direction: column; 
-            justify-content: center;
-            align-items: center;
-            padding: 30px 15px;
-            min-height: 100vh;
-            box-sizing: border-box;
-            margin: 0;
-        }
-
-        /* --- White Box Design --- */
-        .receipt-container {
-            background-color: #ffffff; /* Explicitly set to White */
-            width: 100%;
-            max-width: 420px;
-            padding: 25px;
-            box-shadow: none; 
-            border: none; 
-        }
-
-        .receipt-header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 2px dashed #ccc;
-            background-color: #ffffff; /* Explicitly ensure header has white background */
-        }
-
-        .logo {
-            width: 80px;
-            height: auto;
-            margin-bottom: 10px;
-        }
-
-        .brand-name {
-            font-family: 'Oswald', sans-serif;
-            font-size: 2em;
-            color: #1a237e; /* Dark blue brand color for text, not background */
-            margin: 0;
-            line-height: 1.2;
-        }
-
-        .receipt-title {
-            font-size: 1.1em;
-            font-weight: 700;
-            margin: 5px 0 0;
-            text-transform: uppercase;
-            color: #555;
-            letter-spacing: 1px;
-        }
-
-        .receipt-details {
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 2px dashed #ccc;
-            font-size: 0.9em;
-            line-height: 1.6;
-        }
-
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 4px;
-        }
-
-        .detail-item span {
-            font-weight: 400;
-            color: #444;
-        }
-
-        .detail-item strong {
-            font-weight: 700;
-        }
-
-        .bets-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .bets-table th, .bets-table td {
-            text-align: left;
-            padding: 8px 4px;
-            font-size: 0.95em;
-        }
-
-        .bets-table thead {
-            border-bottom: 1px solid #333;
-        }
-
-        .bets-table th {
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        
-        .bets-table td strong {
-             font-size: 1.1em;
-        }
-
-        .bets-table .align-right {
-            text-align: right;
-        }
-
-        .receipt-total {
-            padding-top: 15px;
-            margin-bottom: 20px;
-            border-top: 2px dashed #ccc;
-            text-align: right;
-            font-size: 1.3em;
-            font-weight: 700;
-        }
-        
-        .receipt-total span {
-            margin-right: 20px;
-        }
-
-        .receipt-footer {
-            text-align: center;
-            font-size: 0.8em;
-            color: #666;
-        }
-
-        .receipt-footer p {
-            margin: 5px 0;
-        }
-        
-        /* --- Download Button Style (Tiny White with Black Text) --- */
-        .btn-download {
-            margin-top: 10px; 
-            padding: 5px 10px; 
-            font-size: 0.9em; 
-            font-weight: 500; 
-            color: #000000; 
-            background-color: #ffffff; 
-            border: 1px solid #ccc; 
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); 
-            transition: background-color 0.2s, color 0.2s;
-            width: auto; 
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .btn-download:hover {
-            background-color: #f0f0f0; 
-            color: #3f51b5; 
-        }
-        
-        .btn-download i {
-            color: #000000; 
-            margin-right: 5px;
-        }
-
-        /* --- NEW: Image Container Style --- */
-        #generatedImageContainer {
-            display: none; /* Hidden by default */
-            max-width: 420px;
-            width: 100%;
-            background-color: #ffffff;
-            padding: 0;
-        }
-
-        #generatedImageContainer img {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 5px;
-            /* Allow long-press to save on mobile devices */
-            touch-action: manipulation; 
-        }
-
-        .save-prompt {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 1.1em;
-            font-weight: 700;
-            color: #1a237e;
-        }
-    </style>
 </head>
 <body>
-    <div id="originalContent">
-        <div class="receipt-container" id="receiptContainer">
-            <header class="receipt-header">
-                <img src="../4DLOGO-B.png" alt="DAHENG 4D Logo" class="logo">
-                <h1 class="brand-name">DAHENG 4D</h1>
-                <h2 class="receipt-title">Official Bet Slip</h2>
-            </header>
-
-            <section class="receipt-details">
-                <div class="detail-item">
-                    <span>Draw Date:</span>
-                    <strong id="draw-date"></strong>
+    <main>
+        <section class="bidding-container">
+            <div class="bidding-header">
+                <img alt="Daheng 4D Logo" class="nav-logo" src="4DLOGO-B.png" style="height: 40px; margin-bottom: 10px;"/>
+                <h1>Place Your Bids</h1>
+                <p>Enter your 4D numbers and the betting volume for Big and Small categories.</p>
+            </div>
+            
+            <div class="bid-form-wrapper">
+                
+                <div class="add-number-control">
+                    <label for="newNumberInput" style="font-weight: 700; color: #1a237e;">New Number (4D):</label>
+                    <input type="text" id="newNumberInput" maxlength="4" placeholder="e.g., 1888" pattern="\d{4}" title="Please enter a 4-digit number">
+                    <button type="button" id="addNewNumberBtn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Number
+                    </button>
                 </div>
-                <div class="detail-item">
-                    <span>Terminal ID:</span>
-                    <strong id="terminal-id"></strong>
+
+                <form id="biddingForm">
+                    <table class="bidding-table">
+                        <thead>
+                            <tr>
+                                <th>4D Number</th>
+                                <th>Big Bid (RM)</th>
+                                <th>Small Bid (RM)</th>
+                                <th></th> 
+                            </tr>
+                        </thead>
+                        <tbody id="biddingTableBody">
+                            </tbody>
+                    </table>
+                </form>
+
+                <div class="summary-row">
+                    <span>TOTAL :</span>
+                    <span id="totalAmountDisplay">RM 0.00</span>
                 </div>
-                <div class="detail-item">
-                    <span>Receipt No:</span>
-                    <strong id="receipt-no"></strong>
-                </div>
-            </section>
 
-            <section class="bets-section">
-                <table class="bets-table">
-                    <thead>
-                        <tr>
-                            <th>Number</th>
-                            <th>Bet Type</th>
-                            <th class="align-right">Amount (RM)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="betsTableBody">
-                        </tbody>
-                </table>
-            </section>
+                <div class="controls-row">
+    <button type="button" class="btn btn-secondary" onclick="submitBids()">
+        <i class="fas fa-save"></i> Submit Bids
+    </button>
+    <button type="button" class="btn btn-secondary" onclick="document.getElementById('biddingTableBody').innerHTML = ''; calculateTotal();">
+        <i class="fas fa-undo"></i> Clear All
+    </button>
+</div>
 
-            <section class="receipt-total">
-                <span>TOTAL:</span>
-                <strong id="finalTotalDisplay">RM 0.00</strong>
-            </section>
+            </div>
+        </section>
+    </main>
 
-            <footer class="receipt-footer">
-                <p>Thank you for playing with DAHENG 4D.</p>
-                <p><strong>Play Responsibly. For 18+ only.</strong></p>
-                <p>All prizes are subject to the Rules and Regulations of DAHENG 4D.</p>
-            </footer>
+    <footer class="main-footer">
+        <div class="footer-bottom">
+            <p>© 2025 Daheng 4D. All Rights Reserved. For 18+ only. Play Responsibly.</p>
         </div>
-        
-        <button id="downloadSlipBtn" type="button" class="btn-download" onclick="captureAndDisplayImage()">
-            <i class="fas fa-download"></i> Download Slip
-        </button>
-    </div>
+    </footer>
 
-    <div id="generatedImageContainer">
-        <p class="save-prompt">Long-press the image below to save it to your gallery.</p>
-    </div>
-    <script>
-        // --- Function to generate a random Terminal ID ---
-        function generateTerminalId() {
-            const prefix = 'KUL-T2-';
-            const randomNumber = Math.floor(1000 + Math.random() * 9000);
-            return prefix + randomNumber;
-        }
-
-        // --- Function to generate a random Receipt No ---
-        function generateReceiptNo() {
-            const s4 = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1).toUpperCase();
-            return `${s4()}-${s4()}-${s4()}-${s4()}`;
-        }
-
-        // --- Function to get the current date in GMT+8 (Asia/Kuala_Lumpur) ---
-        function getGMT8Date() {
-            const dateOptions = { 
-                weekday: 'short', 
-                day: '2-digit', 
-                month: '2-digit', 
-                year: 'numeric', 
-                timeZone: 'Asia/Kuala_Lumpur' // GMT+8
-            };
-            
-            const formatter = new Intl.DateTimeFormat('en-GB', dateOptions);
-            const parts = formatter.formatToParts(new Date());
-
-            let day = '';
-            let month = '';
-            let year = '';
-            let weekday = '';
-
-            parts.forEach(part => {
-                if (part.type === 'day') day = part.value;
-                if (part.type === 'month') month = part.value;
-                if (part.type === 'year') year = part.value;
-                if (part.type === 'weekday') weekday = part.value;
-            });
-            
-            return `${weekday} ${day}-${month}-${year}`;
-        }
-        
-        // --- UPDATED FUNCTION TO CAPTURE AND DISPLAY THE IMAGE ---
-        function captureAndDisplayImage() {
-            const receipt = document.getElementById('receiptContainer'); 
-            const originalContent = document.getElementById('originalContent');
-            const imageContainer = document.getElementById('generatedImageContainer');
-            
-            // Temporarily ensure the body is white during capture to avoid light gray background
-            const originalBodyBackground = document.body.style.backgroundColor;
-            document.body.style.backgroundColor = '#ffffff'; 
-
-            html2canvas(receipt, { 
-                scale: 3, 
-                useCORS: true, 
-                backgroundColor: '#ffffff'
-            }).then(canvas => {
-                // 1. Convert the canvas to an image element
-                const img = document.createElement('img');
-                img.src = canvas.toDataURL('image/png');
-                img.alt = 'Daheng 4D Bet Slip';
-                
-                // 2. Hide the original content
-                originalContent.style.display = 'none';
-                
-                // 3. Clear previous content and display the new image
-                imageContainer.innerHTML = '';
-                
-                const prompt = document.createElement('p');
-                prompt.className = 'save-prompt';
-                prompt.textContent = 'Long-press or right-click the image below to save it.';
-                imageContainer.appendChild(prompt);
-
-                imageContainer.appendChild(img);
-                imageContainer.style.display = 'block';
-
-                // Restore original body background after capture is complete
-                document.body.style.backgroundColor = originalBodyBackground; 
-            });
-        }
-        
-        // --- FUNCTION TO LOAD AND DISPLAY BIDS (UNCHANGED) ---
-        function loadBidsAndDisplay() {
-            const bidsJson = localStorage.getItem('daheng4dBids');
-            const totalAmount = localStorage.getItem('daheng4dTotal');
-            
-            const tableBody = document.getElementById('betsTableBody');
-            const finalTotalDisplay = document.getElementById('finalTotalDisplay');
-            
-            if (!tableBody || !finalTotalDisplay) return; 
-
-            if (!bidsJson) {
-                tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: red;">No bets were placed for this receipt.</td></tr>';
-                finalTotalDisplay.textContent = 'RM 0.00';
-            } else {
-                const bids = JSON.parse(bidsJson);
-                
-                tableBody.innerHTML = ''; 
-                bids.forEach(bid => {
-                    const newRow = tableBody.insertRow();
-                    newRow.innerHTML = `
-                        <td><strong>${bid.number}</strong></td>
-                        <td>${bid.type}</td>
-                        <td class="align-right">${bid.amount}</td>
-                    `;
-                });
-                
-                finalTotalDisplay.textContent = `RM ${totalAmount || '0.00'}`;
-                
-                // IMPORTANT: Clear storage after successful display to prevent stale data
-                localStorage.removeItem('daheng4dBids');
-                localStorage.removeItem('daheng4dTotal');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const drawDateElement = document.getElementById('draw-date');
-            const terminalIdElement = document.getElementById('terminal-id');
-            const receiptNoElement = document.getElementById('receipt-no');
-
-            if (drawDateElement) {
-                drawDateElement.textContent = getGMT8Date();
-            }
-
-            if (terminalIdElement) {
-                terminalIdElement.textContent = generateTerminalId();
-            }
-
-            if (receiptNoElement) {
-                receiptNoElement.textContent = generateReceiptNo();
-            }
-            
-            loadBidsAndDisplay();
-
-            // Expose the function globally for the onclick attribute
-            window.captureAndDisplayImage = captureAndDisplayImage;
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
