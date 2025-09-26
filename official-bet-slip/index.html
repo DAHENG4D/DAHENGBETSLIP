@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script> 
+    
     <style>
         /* CSS for the receipt page */
         body {
@@ -14,8 +16,9 @@
             font-family: 'Roboto Mono', monospace; /* Monospaced font for a receipt feel */
             color: #333;
             display: flex;
+            flex-direction: column; /* Allows content and button to stack */
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             padding: 30px 15px;
             min-height: 100vh;
             box-sizing: border-box;
@@ -135,10 +138,31 @@
         .receipt-footer p {
             margin: 5px 0;
         }
+        
+        /* --- NEW: Image Download Button Style --- */
+        .btn-download {
+            margin-top: 20px;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #fff;
+            background-color: #1a237e; /* Dark Blue */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s;
+            width: 100%;
+            max-width: 420px; /* Matches receipt width */
+        }
+        
+        .btn-download:hover {
+            background-color: #0d47a1;
+        }
     </style>
 </head>
 <body>
-    <div class="receipt-container">
+    <div class="receipt-container" id="receiptContainer">
         <header class="receipt-header">
             <img src="../4DLOGO-B.png" alt="DAHENG 4D Logo" class="logo">
             <h1 class="brand-name">DAHENG 4D</h1>
@@ -185,91 +209,119 @@
             <p>All prizes are subject to the Rules and Regulations of DAHENG 4D.</p>
         </footer>
     </div>
-
+    
+    <button id="downloadSlipBtn" type="button" class="btn-download" onclick="captureAndDownload()">
+        <i class="fas fa-camera"></i> Download Slip as Image (PNG)
+    </button>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // --- Function to generate a random Terminal ID ---
-            function generateTerminalId() {
-                const prefix = 'KUL-T2-';
-                // Generate a random 4-digit number
-                const randomNumber = Math.floor(1000 + Math.random() * 9000);
-                return prefix + randomNumber;
-            }
+        // --- Function to generate a random Terminal ID ---
+        function generateTerminalId() {
+            const prefix = 'KUL-T2-';
+            // Generate a random 4-digit number
+            const randomNumber = Math.floor(1000 + Math.random() * 9000);
+            return prefix + randomNumber;
+        }
 
-            // --- Function to generate a random Receipt No ---
-            function generateReceiptNo() {
-                // Helper function to create a 4-character hex block
-                const s4 = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1).toUpperCase();
-                return `${s4()}-${s4()}-${s4()}-${s4()}`;
-            }
+        // --- Function to generate a random Receipt No ---
+        function generateReceiptNo() {
+            // Helper function to create a 4-character hex block
+            const s4 = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1).toUpperCase();
+            return `${s4()}-${s4()}-${s4()}-${s4()}`;
+        }
 
-            // --- Function to get the current date in GMT+8 (Asia/Kuala_Lumpur) ---
-            function getGMT8Date() {
-                const dateOptions = { 
-                    weekday: 'short', 
-                    day: '2-digit', 
-                    month: '2-digit', 
-                    year: 'numeric', 
-                    timeZone: 'Asia/Kuala_Lumpur' // GMT+8
-                };
+        // --- Function to get the current date in GMT+8 (Asia/Kuala_Lumpur) ---
+        function getGMT8Date() {
+            const dateOptions = { 
+                weekday: 'short', 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric', 
+                timeZone: 'Asia/Kuala_Lumpur' // GMT+8
+            };
+            
+            // Format: Sat 27-09-2025
+            const formatter = new Intl.DateTimeFormat('en-GB', dateOptions);
+            const parts = formatter.formatToParts(new Date());
+
+            let day = '';
+            let month = '';
+            let year = '';
+            let weekday = '';
+
+            parts.forEach(part => {
+                if (part.type === 'day') day = part.value;
+                if (part.type === 'month') month = part.value;
+                if (part.type === 'year') year = part.value;
+                if (part.type === 'weekday') weekday = part.value;
+            });
+            
+            return `${weekday} ${day}-${month}-${year}`;
+        }
+        
+        // --- NEW FUNCTION TO CAPTURE AND DOWNLOAD THE IMAGE ---
+        function captureAndDownload() {
+            // Select the element to capture
+            const receipt = document.getElementById('receiptContainer'); 
+            
+            // html2canvas options: scale increases resolution (better for download)
+            html2canvas(receipt, { scale: 3, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                // Use canvas.toDataURL('image/jpeg', 0.9) if you want a JPG
+                // PNG is recommended for text clarity, but you asked for JPG so I'll show the alternative:
+                // link.href = canvas.toDataURL('image/jpeg', 0.9);
                 
-                // Format: Sat 27-09-2025
-                const formatter = new Intl.DateTimeFormat('en-GB', dateOptions);
-                const parts = formatter.formatToParts(new Date());
+                // Using PNG (default and better for this content)
+                link.href = canvas.toDataURL('image/png');
+                
+                // Set the filename
+                link.download = 'Daheng4D_Bet_Slip_' + document.getElementById('receipt-no').textContent + '.png';
+                
+                // Trigger the download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+        
+        // --- FUNCTION TO LOAD AND DISPLAY BIDS ---
+        function loadBidsAndDisplay() {
+            // Get the bid data and total from local storage
+            const bidsJson = localStorage.getItem('daheng4dBids');
+            const totalAmount = localStorage.getItem('daheng4dTotal');
+            
+            const tableBody = document.getElementById('betsTableBody');
+            const finalTotalDisplay = document.getElementById('finalTotalDisplay');
+            
+            if (!tableBody || !finalTotalDisplay) return; 
 
-                let day = '';
-                let month = '';
-                let year = '';
-                let weekday = '';
-
-                parts.forEach(part => {
-                    if (part.type === 'day') day = part.value;
-                    if (part.type === 'month') month = part.value;
-                    if (part.type === 'year') year = part.value;
-                    if (part.type === 'weekday') weekday = part.value;
+            if (!bidsJson) {
+                // Display a message if no transaction data is found
+                tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No bets were placed for this receipt.</td></tr>';
+                finalTotalDisplay.textContent = 'RM 0.00';
+            } else {
+                const bids = JSON.parse(bidsJson);
+                
+                // Populate the table with dynamic data
+                tableBody.innerHTML = ''; 
+                bids.forEach(bid => {
+                    const newRow = tableBody.insertRow();
+                    newRow.innerHTML = `
+                        <td><strong>${bid.number}</strong></td>
+                        <td>${bid.type}</td>
+                        <td class="align-right">${bid.amount}</td>
+                    `;
                 });
                 
-                return `${weekday} ${day}-${month}-${year}`;
-            }
-            
-            // --- NEW FUNCTION TO LOAD AND DISPLAY BIDS ---
-            function loadBidsAndDisplay() {
-                // Get the bid data and total from local storage
-                const bidsJson = localStorage.getItem('daheng4dBids');
-                const totalAmount = localStorage.getItem('daheng4dTotal');
+                // Update the total display
+                finalTotalDisplay.textContent = `RM ${totalAmount || '0.00'}`;
                 
-                const tableBody = document.getElementById('betsTableBody');
-                const finalTotalDisplay = document.getElementById('finalTotalDisplay');
-                
-                if (!tableBody || !finalTotalDisplay) return; 
-
-                if (!bidsJson) {
-                    // Display a message if no transaction data is found
-                    tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No bets were placed for this receipt.</td></tr>';
-                    finalTotalDisplay.textContent = 'RM 0.00';
-                } else {
-                    const bids = JSON.parse(bidsJson);
-                    
-                    // Populate the table with dynamic data
-                    tableBody.innerHTML = ''; 
-                    bids.forEach(bid => {
-                        const newRow = tableBody.insertRow();
-                        newRow.innerHTML = `
-                            <td><strong>${bid.number}</strong></td>
-                            <td>${bid.type}</td>
-                            <td class="align-right">${bid.amount}</td>
-                        `;
-                    });
-                    
-                    // Update the total display
-                    finalTotalDisplay.textContent = `RM ${totalAmount || '0.00'}`;
-                    
-                    // IMPORTANT: Clear storage after successful display to prevent stale data
-                    localStorage.removeItem('daheng4dBids');
-                    localStorage.removeItem('daheng4dTotal');
-                }
+                // IMPORTANT: Clear storage after successful display to prevent stale data
+                localStorage.removeItem('daheng4dBids');
+                localStorage.removeItem('daheng4dTotal');
             }
+        }
 
+        document.addEventListener('DOMContentLoaded', function() {
             // --- Update the static receipt elements ---
             const drawDateElement = document.getElementById('draw-date');
             const terminalIdElement = document.getElementById('terminal-id');
