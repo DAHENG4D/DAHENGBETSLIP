@@ -13,7 +13,8 @@ function calculateTotal() {
 
     // Sum up the values
     bidInputs.forEach(input => {
-        const value = parseFloat(input.value) || 0;
+        // Ensure the input is treated as an integer for bid volume calculation
+        const value = parseInt(input.value) || 0; 
         currentTotal += value;
     });
 
@@ -44,7 +45,7 @@ function addNewBidRow(number = '') {
     const newRow = tableBody.insertRow();
     newRow.setAttribute('data-number', num);
 
-    // UPDATED HTML: Changed icon to 'fa-times'
+    // KEY UPDATE: Changed value="0" to value="" to make the volume box empty by default
     newRow.innerHTML = `
         <td class="bid-number-cell">
             <button type="button" class="btn btn-secondary btn-remove" onclick="removeBidRow(this)">
@@ -53,10 +54,10 @@ function addNewBidRow(number = '') {
             ${num}
         </td>
         <td>
-            <input type="number" class="bid-input" data-type="big" min="1" step="1.00" value="0.00" onchange="calculateTotal()" onkeyup="calculateTotal()">
+            <input type="number" class="bid-input" data-type="big" min="1" step="1" value="" onchange="calculateTotal()" onkeyup="calculateTotal()">
         </td>
         <td>
-            <input type="number" class="bid-input" data-type="small" min="1" step="1.00" value="0.00" onchange="calculateTotal()" onkeyup="calculateTotal()">
+            <input type="number" class="bid-input" data-type="small" min="1" step="1" value="" onchange="calculateTotal()" onkeyup="calculateTotal()">
         </td>
     `;
     
@@ -125,8 +126,9 @@ function submitBids() {
         const bigInput = row.querySelector('.bid-input[data-type="big"]');
         const smallInput = row.querySelector('.bid-input[data-type="small"]');
         
-        const bigAmount = parseFloat(bigInput.value) || 0;
-        const smallAmount = parseFloat(smallInput.value) || 0;
+        // Use parseInt to ensure the volume is an integer, and handle empty strings as 0
+        const bigAmount = parseInt(bigInput.value) || 0;
+        const smallAmount = parseInt(smallInput.value) || 0;
         
         grandTotal += bigAmount + smallAmount;
 
