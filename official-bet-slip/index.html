@@ -179,6 +179,7 @@
             width: 100%;
             background-color: #ffffff;
             padding: 0;
+            text-align: center; /* Center the prompt and image */
         }
 
         #generatedImageContainer img {
@@ -188,11 +189,13 @@
             border-radius: 5px;
             /* Allow long-press to save on mobile devices */
             touch-action: manipulation; 
+            /* Added a subtle border to mimic the original slip definition */
+            border: 1px solid #ddd;
         }
 
         .save-prompt {
             text-align: center;
-            margin-top: 20px;
+            margin: 20px 0 10px; /* Added spacing */
             font-size: 1.1em;
             font-weight: 700;
             color: #1a237e;
@@ -255,30 +258,27 @@
     </div>
 
     <div id="generatedImageContainer">
-        <p class="save-prompt">Long-press the image below to save it to your gallery.</p>
     </div>
     <script>
-        // --- Function to generate a random Terminal ID ---
+        // --- Utility Functions (Unchanged) ---
         function generateTerminalId() {
             const prefix = 'KUL-T2-';
             const randomNumber = Math.floor(1000 + Math.random() * 9000);
             return prefix + randomNumber;
         }
 
-        // --- Function to generate a random Receipt No ---
         function generateReceiptNo() {
             const s4 = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1).toUpperCase();
             return `${s4()}-${s4()}-${s4()}-${s4()}`;
         }
 
-        // --- Function to get the current date in GMT+8 (Asia/Kuala_Lumpur) ---
         function getGMT8Date() {
             const dateOptions = { 
                 weekday: 'short', 
                 day: '2-digit', 
                 month: '2-digit', 
                 year: 'numeric', 
-                timeZone: 'Asia/Kuala_Lumpur' // GMT+8
+                timeZone: 'Asia/Kuala_Lumpur' 
             };
             
             const formatter = new Intl.DateTimeFormat('en-GB', dateOptions);
@@ -299,13 +299,12 @@
             return `${weekday} ${day}-${month}-${year}`;
         }
         
-        // --- UPDATED FUNCTION TO CAPTURE AND DISPLAY THE IMAGE ---
+        // --- NEW/UPDATED FUNCTION TO CAPTURE AND DISPLAY THE IMAGE ---
         function captureAndDisplayImage() {
             const receipt = document.getElementById('receiptContainer'); 
             const originalContent = document.getElementById('originalContent');
             const imageContainer = document.getElementById('generatedImageContainer');
             
-            // Temporarily ensure the body is white during capture to avoid light gray background
             const originalBodyBackground = document.body.style.backgroundColor;
             document.body.style.backgroundColor = '#ffffff'; 
 
@@ -314,15 +313,14 @@
                 useCORS: true, 
                 backgroundColor: '#ffffff'
             }).then(canvas => {
-                // 1. Convert the canvas to an image element
-                const img = document.createElement('img');
-                img.src = canvas.toDataURL('image/png');
-                img.alt = 'Daheng 4D Bet Slip';
-                
-                // 2. Hide the original content
+                // 1. Get the image data URL and filename
+                const imageDataUrl = canvas.toDataURL('image/png');
+                const fileName = 'Daheng4D_Bet_Slip_' + document.getElementById('receipt-no').textContent + '.png';
+
+                // 2. Hide the original content immediately
                 originalContent.style.display = 'none';
-                
-                // 3. Clear previous content and display the new image
+
+                // 3. Clear container and create elements
                 imageContainer.innerHTML = '';
                 
                 const prompt = document.createElement('p');
@@ -330,11 +328,21 @@
                 prompt.textContent = 'Long-press or right-click the image below to save it.';
                 imageContainer.appendChild(prompt);
 
-                imageContainer.appendChild(img);
-                imageContainer.style.display = 'block';
+                const img = document.createElement('img');
+                img.src = imageDataUrl;
+                img.alt = 'Daheng 4D Bet Slip';
+                
+                // Set the 'download' attribute, which is sometimes picked up by context menus
+                img.setAttribute('download', fileName); 
 
-                // Restore original body background after capture is complete
-                document.body.style.backgroundColor = originalBodyBackground; 
+                imageContainer.appendChild(img);
+                
+                // 4. Use setTimeout to ensure the DOM updates before displaying
+                setTimeout(() => {
+                    imageContainer.style.display = 'block';
+                    // Restore original body background after the DOM has updated
+                    document.body.style.backgroundColor = originalBodyBackground; 
+                }, 100); // A small delay (100ms) to ensure DOM registration
             });
         }
         
@@ -366,7 +374,6 @@
                 
                 finalTotalDisplay.textContent = `RM ${totalAmount || '0.00'}`;
                 
-                // IMPORTANT: Clear storage after successful display to prevent stale data
                 localStorage.removeItem('daheng4dBids');
                 localStorage.removeItem('daheng4dTotal');
             }
