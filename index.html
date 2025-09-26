@@ -148,7 +148,7 @@
         <section class="receipt-details">
             <div class="detail-item">
                 <span>Draw Date:</span>
-                <strong>Sat 27-09-2025</strong>
+                <strong id="draw-date"></strong>
             </div>
             <div class="detail-item">
                 <span>Terminal ID:</span>
@@ -228,9 +228,44 @@
                 return `${s4()}-${s4()}-${s4()}-${s4()}`;
             }
 
+            // --- Function to get the current date in GMT+8 (Asia/Kuala_Lumpur) ---
+            function getGMT8Date() {
+                const dateOptions = { 
+                    weekday: 'short', 
+                    day: '2-digit', 
+                    month: '2-digit', 
+                    year: 'numeric', 
+                    timeZone: 'Asia/Kuala_Lumpur' // GMT+8
+                };
+                
+                // Format: Sat, 27/09/2025
+                const formatter = new Intl.DateTimeFormat('en-GB', dateOptions);
+                const parts = formatter.formatToParts(new Date());
+
+                let day = '';
+                let month = '';
+                let year = '';
+                let weekday = '';
+
+                parts.forEach(part => {
+                    if (part.type === 'day') day = part.value;
+                    if (part.type === 'month') month = part.value;
+                    if (part.type === 'year') year = part.value;
+                    if (part.type === 'weekday') weekday = part.value;
+                });
+                
+                // Reformat to match the original style: "Sat 27-09-2025"
+                return `${weekday} ${day}-${month}-${year}`;
+            }
+
             // --- Update the elements on the page ---
+            const drawDateElement = document.getElementById('draw-date');
             const terminalIdElement = document.getElementById('terminal-id');
             const receiptNoElement = document.getElementById('receipt-no');
+
+            if (drawDateElement) {
+                drawDateElement.textContent = getGMT8Date();
+            }
 
             if (terminalIdElement) {
                 terminalIdElement.textContent = generateTerminalId();
