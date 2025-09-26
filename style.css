@@ -15,17 +15,28 @@
     margin-bottom: 25px;
 }
 
+/* NEW: Container for horizontal scrolling on mobile */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto; /* Enables horizontal scrolling */
+    -webkit-overflow-scrolling: touch; /* Improves scrolling experience on iOS */
+    margin-top: 20px;
+}
+
 .bidding-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
-    font-size: 1.1em;
+    /* Ensure the table is wide enough to force a scroll on small screens */
+    min-width: 600px; 
+    font-size: 1.0em; /* Slightly reduced font size */
 }
 
 .bidding-table th, .bidding-table td {
-    padding: 10px 15px;
+    /* Reduced padding for more space */
+    padding: 8px 4px;
     text-align: center;
     border: 1px solid #eee;
+    white-space: nowrap; /* Prevents column headers/numbers from wrapping */
 }
 
 .bidding-table thead th {
@@ -46,7 +57,7 @@
 
 .bid-number-cell {
     font-family: 'Oswald', sans-serif;
-    font-size: 1.5em;
+    font-size: 1.4em; /* Slightly reduced font size */
     font-weight: 700;
     color: #000000;
     min-width: 80px;
@@ -58,8 +69,8 @@
 }
 
 .bid-input {
-    width: 80px;
-    padding: 8px;
+    width: 55px; /* Reduced input width to save maximum space */
+    padding: 5px;
     border: 1px solid #ccc;
     border-radius: 5px;
     text-align: center;
