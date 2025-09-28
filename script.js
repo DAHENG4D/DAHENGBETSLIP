@@ -69,16 +69,25 @@ function calculateTotal() {
 /**
  * Creates and adds a new bid row to the table.
  * @param {string} number - The 4-digit number (e.g., "1234").
+ * @param {number[]} [amounts=[0,0,0,0]] - An array of 4 amounts: [BIG, SMALL, BIG_IBOX, SMALL_IBOX].
  */
-function addNewBidRow(number = '') {
+function addNewBidRow(number, amounts = [0, 0, 0, 0]) {
     const tableBody = document.getElementById('biddingTableBody');
     const num = number.trim().padStart(4, '0'); // Ensure 4 digits
+
+    // Check if number already exists
+    const existingRow = tableBody.querySelector(`tr[data-number="${num}"]`);
+    if (existingRow) {
+        alert(`Number ${num} is already in the list. Please edit the existing row.`);
+        return;
+    }
 
     // Create the new table row
     const newRow = tableBody.insertRow();
     newRow.setAttribute('data-number', num);
+    
+    const [big, small, bigIbox, smallIbox] = amounts.map(a => parseInt(a) || 0);
 
-    // IBOX columns already added in previous step
     newRow.innerHTML = `
         <td class="bid-number-cell">
             <button type="button" class="btn btn-secondary btn-remove" onclick="removeBidRow(this)">
@@ -87,30 +96,94 @@ function addNewBidRow(number = '') {
             ${num}
         </td>
         <td>
-            <input type="number" class="bid-input" data-type="big" min="1" step="1" value="" onchange="calculateTotal()" onkeyup="calculateTotal()">
+            <input type="number" class="bid-input" data-type="big" min="0" step="1" value="${big > 0 ? big : ''}" onchange="calculateTotal()" onkeyup="calculateTotal()">
         </td>
         <td>
-            <input type="number" class="bid-input" data-type="small" min="1" step="1" value="" onchange="calculateTotal()" onkeyup="calculateTotal()">
+            <input type="number" class="bid-input" data-type="small" min="0" step="1" value="${small > 0 ? small : ''}" onchange="calculateTotal()" onkeyup="calculateTotal()">
         </td>
         <td>
-            <input type="number" class="bid-input" data-type="big-ibox" min="1" step="1" value="" onchange="calculateTotal()" onkeyup="calculateTotal()">
+            <input type="number" class="bid-input" data-type="big-ibox" min="0" step="1" value="${bigIbox > 0 ? bigIbox : ''}" onchange="calculateTotal()" onkeyup="calculateTotal()">
         </td>
         <td>
-            <input type="number" class="bid-input" data-type="small-ibox" min="1" step="1" value="" onchange="calculateTotal()" onkeyup="calculateTotal()">
+            <input type="number" class="bid-input" data-type="small-ibox" min="0" step="1" value="${smallIbox > 0 ? smallIbox : ''}" onchange="calculateTotal()" onkeyup="calculateTotal()">
         </td>
     `;
     
-    // Clear the input field after successful addition
-    const newNumberInput = document.getElementById('newNumberInput');
-    if (newNumberInput) {
-        newNumberInput.value = '';
+    // Set focus on the first input of the new row if no amounts were provided
+    if (big === 0 && small === 0 && bigIbox === 0 && smallIbox === 0) {
+        newRow.querySelector('.bid-input[data-type="big"]').focus();
     }
-    
-    // Set focus on the first input of the new row
-    newRow.querySelector('.bid-input[data-type="big"]').focus();
 
     calculateTotal(); // Recalculate total
 }
+
+/**
+ * Processes the multi-line chunk bidding input.
+ */
+// ... (rest of the script.js remains the same)
+
+/**
+ * Processes the multi-line chunk bidding input.
+ */
+function processChunkBids() {
+    const chunkInput = document.getElementById('chunkBidsInput');
+    const lines = chunkInput.value.trim().split('\n');
+    let addedCount = 0;
+    
+    if (lines.length === 0 || lines[0] === "") {
+        alert("Please enter at least one bid.");
+        return;
+    }
+    
+    lines.forEach(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine === '') return;
+
+        // Split by hyphen to check for amount values
+        const parts = trimmedLine.split('-'); 
+        const number = parts[0];
+        
+        // Basic validation for 4-digit number
+        if (!/^\d{4}$/.test(number)) {
+            console.warn(`Skipping invalid format: ${line}`);
+            return;
+        }
+
+        // Check if the input is JUST the number (no hyphen)
+        if (parts.length === 1) {
+            // Case 1: Only the number is provided (e.g., "1234")
+            // Add the number with zero amounts and allow the user to input manually.
+            addNewBidRow(number, [0, 0, 0, 0]);
+            addedCount++;
+            return;
+        }
+
+        // Case 2: Number and amounts are provided (e.g., "1234-1-1")
+        const big = parseInt(parts[1]) || 0;
+        const small = parseInt(parts[2]) || 0;
+        const bigIbox = parseInt(parts[3]) || 0;
+        const smallIbox = parseInt(parts[4]) || 0;
+        
+        // Only add if at least one bid volume is positive (or if amounts were provided but parsed to 0)
+        // We only require a positive bid if the input line had hyphens
+        if (big > 0 || small > 0 || bigIbox > 0 || smallIbox > 0) {
+             addNewBidRow(number, [big, small, bigIbox, smallIbox]);
+             addedCount++;
+        } else {
+             // This handles lines like "1234-0-0" which should be skipped if no positive bids exist
+             console.warn(`Skipping number ${number} as all explicit bids were zero or invalid.`);
+        }
+    });
+
+    if (addedCount > 0) {
+        chunkInput.value = ''; // Clear the input field after successful addition
+    } else {
+        alert("No valid numbers or bids were added. Please check your input format (e.g., 1234 or 1234-1-1).");
+    }
+    
+    calculateTotal();
+}
+
 
 /**
  * Removes a bid row from the table.
@@ -124,24 +197,26 @@ function removeBidRow(buttonElement) {
     }
 }
 
-// Event Listener for the 'Add Number' button
+// Event Listener for the 'Add Bids' button
 document.addEventListener('DOMContentLoaded', () => {
     // Check if we are on the bidding form page
     const addButton = document.getElementById('addNewNumberBtn');
     if (addButton) {
-        addButton.addEventListener('click', () => {
-            const numberInput = document.getElementById('newNumberInput');
-            if (numberInput.value) {
-                addNewBidRow(numberInput.value);
-            } else {
-                alert("Please enter a 4-digit number first.");
-            }
-        });
+        // CHANGE: Connect the button to the new chunk processing function
+        addButton.addEventListener('click', processChunkBids);
 
-        // Initialize with a placeholder row if the table is empty
+        // Remove the old single-input element logic
+        /*
+        const numberInput = document.getElementById('newNumberInput');
+        if (numberInput) {
+             // ... old logic removed
+        }
+        */
+
+        // Initialize with a placeholder row if the table is empty (optional, keeping for demonstration)
         const tableBody = document.getElementById('biddingTableBody');
         if (tableBody && tableBody.rows.length === 0) {
-            addNewBidRow('1234'); // Add a sample number on load
+            addNewBidRow('1234', [1, 0, 0, 0]); // Add a sample number on load
         }
         
         calculateTotal(); // Calculate initial total
@@ -232,3 +307,4 @@ window.submitBids = submitBids;
 window.calculateTotal = calculateTotal;
 window.addNewBidRow = addNewBidRow;
 window.removeBidRow = removeBidRow;
+window.processChunkBids = processChunkBids; // Expose new function

@@ -31,6 +31,11 @@
     font-size: 1.0em; 
 }
 
+/* Set the table row as the positioning context for the delete button */
+.bidding-table tbody tr {
+    position: relative;
+}
+
 .bidding-table th, .bidding-table td {
     padding: 8px 4px; /* Reduced padding */
     text-align: center;
@@ -60,11 +65,13 @@
     font-weight: 700;
     color: #000000;
     min-width: 80px;
-    position: relative; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0; 
+    /* Removed: position: relative, since the parent row now defines the context */
+    text-align: center;
+    /* FIX: Add margin-left to create space between the table and the cross */
+    margin-left: 50px;
+    padding-left: 5px; /* Minimal padding */
+    padding-right: 5px;
+    overflow: visible; 
 }
 
 .bid-input {
@@ -83,24 +90,25 @@
 
 .btn-remove {
     background-color: transparent; 
+    /* FIX: Color is black */
     color: #000000; 
     padding: 0; 
-    font-size: 0.8em; 
+    font-size: 1.1em; 
     line-height: 1;
     border: none; 
     cursor: pointer;
     transition: color 0.2s; 
 
-    /* Positioning to the left of the number */
+    /* FIX: Positioned relative to the row, pushing it OUTSIDE the table horizontally */
     position: absolute;
     top: 50%; 
-    left: 0; 
-    transform: translate(-200%, -50%); 
+    left: -20px; /* CRITICAL CHANGE: Negative left to pull it outside the table structure */
+    transform: translateY(-50%); /* Center vertically */
     z-index: 10; 
 }
 
 .btn-remove:hover {
-    color: #d32f2f; 
+    color: #d32f2f; /* Red on hover for visual feedback */
     background-color: transparent; 
 }
 
@@ -129,14 +137,16 @@
     margin-bottom: 20px;
 }
 
-#newNumberInput {
-    width: 100px;
+/* Styling for the new chunk bidding textarea */
+#chunkBidsInput { 
+    width: 250px; 
+    height: 100px; 
     padding: 10px;
-    font-size: 1.2em;
-    font-family: 'Oswald', sans-serif;
-    text-align: center;
+    font-size: 1.0em; 
+    font-family: 'Roboto Mono', monospace; /* Monospace font for structured input */
     border: 2px solid #1a237e;
     border-radius: 5px;
+    resize: vertical; 
 }
 
 /* ======================================= */
@@ -163,10 +173,11 @@
         margin-bottom: 5px;
     }
 
-    #newNumberInput {
-        width: 40%; /* Small width */
-        font-size: 1em;
+    #chunkBidsInput { 
+        width: 80%; /* Adjusted width for mobile */
+        font-size: 0.9em;
         padding: 8px;
+        height: 80px;
     }
 
     #addNewNumberBtn {
@@ -187,6 +198,11 @@
     .bid-number-cell {
         font-size: 1.2em;
         min-width: 65px; /* Smaller min-width */
+        padding-left: 10px; /* Reset padding for mobile */
+        padding-right: 10px;
+        overflow: visible; 
+        text-align: center;
+        margin-left: 30px; /* Space on mobile */
     }
 
     .bid-input {
@@ -195,10 +211,11 @@
         font-size: 0.9em;
     }
     
-    /* Shrink the remove button further */
+    /* Position the remove button on mobile */
     .btn-remove {
-        font-size: 0.7em;
-        transform: translate(-150%, -50%); /* Adjust positioning */
+        font-size: 1.0em; /* Slightly larger cross */
+        left: -10px; /* Negative position for mobile */
+        transform: translateY(-50%); /* Center vertically */
     }
 
     /* Shrink the summary and control section font/padding */
