@@ -86,6 +86,7 @@ function addNewBidRow(number, amounts = [0, 0, 0, 0]) {
     const newRow = tableBody.insertRow();
     newRow.setAttribute('data-number', num);
     
+    // Use an empty string for zero values so the placeholder is visible, otherwise show the number
     const [big, small, bigIbox, smallIbox] = amounts.map(a => parseInt(a) || 0);
 
     newRow.innerHTML = `
@@ -120,11 +121,6 @@ function addNewBidRow(number, amounts = [0, 0, 0, 0]) {
 /**
  * Processes the multi-line chunk bidding input.
  */
-// ... (rest of the script.js remains the same)
-
-/**
- * Processes the multi-line chunk bidding input.
- */
 function processChunkBids() {
     const chunkInput = document.getElementById('chunkBidsInput');
     const lines = chunkInput.value.trim().split('\n');
@@ -148,31 +144,33 @@ function processChunkBids() {
             console.warn(`Skipping invalid format: ${line}`);
             return;
         }
-
-        // Check if the input is JUST the number (no hyphen)
-        if (parts.length === 1) {
-            // Case 1: Only the number is provided (e.g., "1234")
-            // Add the number with zero amounts and allow the user to input manually.
-            addNewBidRow(number, [0, 0, 0, 0]);
-            addedCount++;
-            return;
-        }
-
-        // Case 2: Number and amounts are provided (e.g., "1234-1-1")
+        
+        // **FIXED LOGIC START**
+        
         const big = parseInt(parts[1]) || 0;
         const small = parseInt(parts[2]) || 0;
         const bigIbox = parseInt(parts[3]) || 0;
         const smallIbox = parseInt(parts[4]) || 0;
-        
-        // Only add if at least one bid volume is positive (or if amounts were provided but parsed to 0)
-        // We only require a positive bid if the input line had hyphens
-        if (big > 0 || small > 0 || bigIbox > 0 || smallIbox > 0) {
-             addNewBidRow(number, [big, small, bigIbox, smallIbox]);
-             addedCount++;
-        } else {
-             // This handles lines like "1234-0-0" which should be skipped if no positive bids exist
-             console.warn(`Skipping number ${number} as all explicit bids were zero or invalid.`);
+
+        // Determine if amounts were explicitly provided (line had at least one hyphen)
+        const amountsProvided = parts.length > 1;
+
+        if (!amountsProvided) {
+            // Case 1: Only the number is provided (e.g., "1234")
+            addNewBidRow(number, [0, 0, 0, 0]);
+            addedCount++;
+        } else if (big > 0 || small > 0 || bigIbox > 0 || smallIbox > 0) {
+            // Case 2: Number and positive amounts are provided (e.g., "1234-1-1")
+            addNewBidRow(number, [big, small, bigIbox, smallIbox]);
+            addedCount++;
+        } else if (amountsProvided && (big === 0 && small === 0 && bigIbox === 0 && smallIbox === 0)) {
+            // Case 3: Number and explicit zero amounts are provided (e.g., "1234-0-0"). 
+            // We should still add this, as the user might want to edit it.
+            addNewBidRow(number, [0, 0, 0, 0]);
+            addedCount++;
         }
+        
+        // **FIXED LOGIC END**
     });
 
     if (addedCount > 0) {
@@ -202,18 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if we are on the bidding form page
     const addButton = document.getElementById('addNewNumberBtn');
     if (addButton) {
-        // CHANGE: Connect the button to the new chunk processing function
+        // Connect the button to the new chunk processing function
         addButton.addEventListener('click', processChunkBids);
-
-        // Remove the old single-input element logic
-        /*
-        const numberInput = document.getElementById('newNumberInput');
-        if (numberInput) {
-             // ... old logic removed
-        }
-        */
-
-        // Initialize with a placeholder row if the table is empty (optional, keeping for demonstration)
+        
+        // Initialize with a placeholder row if the table is empty
         const tableBody = document.getElementById('biddingTableBody');
         if (tableBody && tableBody.rows.length === 0) {
             addNewBidRow('1234', [1, 0, 0, 0]); // Add a sample number on load

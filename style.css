@@ -21,6 +21,8 @@
     overflow-x: auto; /* Enables horizontal scrolling */
     -webkit-overflow-scrolling: touch; /* Improves scrolling experience on iOS */
     margin-top: 20px;
+    /* FIX 1: Add left padding to the wrapper to make space for the button outside the table */
+    padding-left: 40px; 
 }
 
 .bidding-table {
@@ -31,10 +33,7 @@
     font-size: 1.0em; 
 }
 
-/* Set the table row as the positioning context for the delete button */
-.bidding-table tbody tr {
-    position: relative;
-}
+/* Removed 'position: relative' from tr */
 
 .bidding-table th, .bidding-table td {
     padding: 8px 4px; /* Reduced padding */
@@ -65,12 +64,13 @@
     font-weight: 700;
     color: #000000;
     min-width: 80px;
-    /* Removed: position: relative, since the parent row now defines the context */
+    /* FIX 2: Resetting position:relative here is crucial for absolute positioning */
+    position: relative; 
     text-align: center;
-    /* FIX: Add margin-left to create space between the table and the cross */
-    margin-left: 50px;
-    padding-left: 5px; /* Minimal padding */
+    /* Minimal internal padding */
+    padding-left: 5px; 
     padding-right: 5px;
+    /* Ensure nothing is clipped */
     overflow: visible; 
 }
 
@@ -90,7 +90,7 @@
 
 .btn-remove {
     background-color: transparent; 
-    /* FIX: Color is black */
+    /* Color is black */
     color: #000000; 
     padding: 0; 
     font-size: 1.1em; 
@@ -99,10 +99,10 @@
     cursor: pointer;
     transition: color 0.2s; 
 
-    /* FIX: Positioned relative to the row, pushing it OUTSIDE the table horizontally */
+    /* FIX 3: Negative left position relative to the cell's left edge */
     position: absolute;
     top: 50%; 
-    left: -20px; /* CRITICAL CHANGE: Negative left to pull it outside the table structure */
+    left: -35px; /* Push the button outside the cell and into the wrapper's padding */
     transform: translateY(-50%); /* Center vertically */
     z-index: 10; 
 }
@@ -140,7 +140,7 @@
 /* Styling for the new chunk bidding textarea */
 #chunkBidsInput { 
     width: 250px; 
-    height: 100px; 
+    height: 50px; 
     padding: 10px;
     font-size: 1.0em; 
     font-family: 'Roboto Mono', monospace; /* Monospace font for structured input */
@@ -195,14 +195,18 @@
         min-width: 550px; /* Slightly reduce min-width, horizontal scroll is key */
     }
 
+    .table-responsive {
+        /* FIX 1: Add left padding to the wrapper on mobile too */
+        padding-left: 25px; 
+    }
+
     .bid-number-cell {
         font-size: 1.2em;
         min-width: 65px; /* Smaller min-width */
-        padding-left: 10px; /* Reset padding for mobile */
-        padding-right: 10px;
+        padding-left: 5px; /* Reset padding for mobile */
+        padding-right: 5px;
         overflow: visible; 
         text-align: center;
-        margin-left: 30px; /* Space on mobile */
     }
 
     .bid-input {
@@ -214,7 +218,7 @@
     /* Position the remove button on mobile */
     .btn-remove {
         font-size: 1.0em; /* Slightly larger cross */
-        left: -10px; /* Negative position for mobile */
+        left: -18px; /* Negative position for mobile */
         transform: translateY(-50%); /* Center vertically */
     }
 
