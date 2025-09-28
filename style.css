@@ -26,7 +26,7 @@
 }
 
 .bidding-table {
-    width: 93%;
+    width: 95%;
     border-collapse: collapse;
     /* Ensure the table is wide enough to force a scroll on small screens */
     min-width: 600px; 
