@@ -171,6 +171,32 @@
             color: #000000; 
             margin-right: 5px;
         }
+
+        /* --- NEW: Image Container Style --- */
+        #generatedImageContainer {
+            display: none; /* Hidden by default */
+            max-width: 420px;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 0;
+        }
+
+        #generatedImageContainer img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 5px;
+            /* Allow long-press to save on mobile devices */
+            touch-action: manipulation; 
+        }
+
+        .save-prompt {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #1a237e;
+        }
     </style>
 </head>
 <body>
@@ -223,31 +249,36 @@
             </footer>
         </div>
         
-        <button id="downloadSlipBtn" type="button" class="btn-download" onclick="captureAndDownload()">
+        <button id="downloadSlipBtn" type="button" class="btn-download" onclick="captureAndDisplayImage()">
             <i class="fas fa-download"></i> Download Slip
         </button>
     </div>
 
+    <div id="generatedImageContainer">
+        <p class="save-prompt">Long-press the image below to save it to your gallery.</p>
+    </div>
     <script>
-        // --- Utility Functions (Unchanged) ---
+        // --- Function to generate a random Terminal ID ---
         function generateTerminalId() {
             const prefix = 'KUL-T2-';
             const randomNumber = Math.floor(1000 + Math.random() * 9000);
             return prefix + randomNumber;
         }
 
+        // --- Function to generate a random Receipt No ---
         function generateReceiptNo() {
             const s4 = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1).toUpperCase();
             return `${s4()}-${s4()}-${s4()}-${s4()}`;
         }
 
+        // --- Function to get the current date in GMT+8 (Asia/Kuala_Lumpur) ---
         function getGMT8Date() {
             const dateOptions = { 
                 weekday: 'short', 
                 day: '2-digit', 
                 month: '2-digit', 
                 year: 'numeric', 
-                timeZone: 'Asia/Kuala_Lumpur' 
+                timeZone: 'Asia/Kuala_Lumpur' // GMT+8
             };
             
             const formatter = new Intl.DateTimeFormat('en-GB', dateOptions);
@@ -268,32 +299,41 @@
             return `${weekday} ${day}-${month}-${year}`;
         }
         
-        // --- RESTORED FUNCTION TO CAPTURE AND INITIATE DOWNLOAD ---
-        function captureAndDownload() {
+        // --- UPDATED FUNCTION TO CAPTURE AND DISPLAY THE IMAGE ---
+        function captureAndDisplayImage() {
             const receipt = document.getElementById('receiptContainer'); 
+            const originalContent = document.getElementById('originalContent');
+            const imageContainer = document.getElementById('generatedImageContainer');
             
-            // Temporarily set the body to white during capture
+            // Temporarily ensure the body is white during capture to avoid light gray background
             const originalBodyBackground = document.body.style.backgroundColor;
             document.body.style.backgroundColor = '#ffffff'; 
 
             html2canvas(receipt, { 
                 scale: 3, 
                 useCORS: true, 
-                backgroundColor: '#ffffff' // Ensure canvas background is white
+                backgroundColor: '#ffffff'
             }).then(canvas => {
-                const link = document.createElement('a');
+                // 1. Convert the canvas to an image element
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL('image/png');
+                img.alt = 'Daheng 4D Bet Slip';
                 
-                link.href = canvas.toDataURL('image/png');
+                // 2. Hide the original content
+                originalContent.style.display = 'none';
                 
-                // Set the filename
-                link.download = 'Daheng4D_Bet_Slip_' + document.getElementById('receipt-no').textContent + '.png';
+                // 3. Clear previous content and display the new image
+                imageContainer.innerHTML = '';
                 
-                // Append, click (to trigger download), and remove
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                const prompt = document.createElement('p');
+                prompt.className = 'save-prompt';
+                prompt.textContent = 'Long-press or right-click the image below to save it.';
+                imageContainer.appendChild(prompt);
 
-                // Restore original body background after capture
+                imageContainer.appendChild(img);
+                imageContainer.style.display = 'block';
+
+                // Restore original body background after capture is complete
                 document.body.style.backgroundColor = originalBodyBackground; 
             });
         }
@@ -326,6 +366,7 @@
                 
                 finalTotalDisplay.textContent = `RM ${totalAmount || '0.00'}`;
                 
+                // IMPORTANT: Clear storage after successful display to prevent stale data
                 localStorage.removeItem('daheng4dBids');
                 localStorage.removeItem('daheng4dTotal');
             }
@@ -351,7 +392,7 @@
             loadBidsAndDisplay();
 
             // Expose the function globally for the onclick attribute
-            window.captureAndDownload = captureAndDownload;
+            window.captureAndDisplayImage = captureAndDisplayImage;
         });
     </script>
 </body>
