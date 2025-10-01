@@ -1,4 +1,4 @@
-// --- UTILITY FUNCTION FOR IBOX VARIATION (NEW) ---
+// --- UTILITY FUNCTION FOR IBOX VARIATION ---
 /**
  * Calculates the IBOX permutation count for a 4-digit number.
  * @param {string} number - The 4-digit number string.
@@ -14,8 +14,6 @@ function getIboxVariation(number) {
     });
 
     const uniqueCounts = Object.values(counts);
-
-    // Sort the unique counts to simplify pattern matching
     uniqueCounts.sort((a, b) => b - a);
 
     // 4 Different Digits: [1, 1, 1, 1] -> 24-Way
@@ -36,30 +34,48 @@ function getIboxVariation(number) {
     return 0; 
 }
 
+// --- UTILITY FUNCTION FOR ROLL/SYSTEM ENTRY EXPANSION (NEW) ---
+/**
+ * Expands a Roll or System Entry number (e.g., 'R234', '12X4') into 10 unique 4D numbers.
+ * @param {string} rollNumber - The 4-character string containing 'R' or 'X'.
+ * @returns {string[]} An array of 10 expanded 4D number strings.
+ */
+function expandRollNumbers(rollNumber) {
+    const expandedNumbers = [];
+    // Normalize to upper case for detection (Roll/System Entry is case-insensitive)
+    const normalizedNumber = rollNumber.toUpperCase();
+
+    // Check that there is exactly one 'R' or 'X'
+    const rollCount = (normalizedNumber.match(/[RX]/g) || []).length;
+    if (rollCount !== 1) {
+        return []; // Invalid format for this function
+    }
+
+    // Find the index of the rolling character
+    const rollIndex = normalizedNumber.search(/[RX]/);
+
+    for (let i = 0; i <= 9; i++) {
+        // Replace 'R' or 'X' with the current digit (0-9)
+        const newNumber = normalizedNumber.replace(/[RX]/, i.toString());
+        expandedNumbers.push(newNumber);
+    }
+
+    return expandedNumbers;
+}
 
 // --- FUNCTIONS FOR DYNAMIC BIDDING FORM ---
-
-// Global variable to track the total amount
 let totalBiddingAmount = 0.00;
 
-/**
- * Calculates and updates the total amount of all bids.
- */
 function calculateTotal() {
     let currentTotal = 0.00;
-    // Select all bid input fields
     const bidInputs = document.querySelectorAll('.bid-input');
-
-    // Sum up the values
     bidInputs.forEach(input => {
-        // Ensure the input is treated as an integer for bid volume calculation
         const value = parseInt(input.value) || 0; 
         currentTotal += value;
     });
 
     totalBiddingAmount = currentTotal;
     
-    // Update the total display
     const totalDisplay = document.getElementById('totalAmountDisplay');
     if (totalDisplay) {
         totalDisplay.textContent = `RM ${currentTotal.toFixed(2)}`;
@@ -69,16 +85,31 @@ function calculateTotal() {
 /**
  * Creates and adds a new bid row to the table.
  * @param {string} number - The 4-digit number (e.g., "1234").
- * @param {number[]} [amounts=[0,0,0,0]] - An array of 4 amounts: [BIG, SMALL, BIG_IBOX, SMALL_IBOX].
+ * @param {number[]} [amounts=[0,0,0,0,0]] - An array of 5 amounts: [BIG, SMALL, BIG_IBOX, SMALL_IBOX, STRAIGHT].
  */
-function addNewBidRow(number, amounts = [0, 0, 0, 0]) {
+function addNewBidRow(number, amounts = [0, 0, 0, 0, 0]) {
     const tableBody = document.getElementById('biddingTableBody');
-    const num = number.trim().padStart(4, '0'); // Ensure 4 digits
+    const num = number.trim().padStart(4, '0');
 
-    // Check if number already exists
+    // Check if number already exists - CRUCIAL for Roll/System Entry to prevent duplicates
     const existingRow = tableBody.querySelector(`tr[data-number="${num}"]`);
     if (existingRow) {
-        alert(`Number ${num} is already in the list. Please edit the existing row.`);
+        // If it exists, add the new amounts to the existing row's values
+        const [big, small, bigIbox, smallIbox, straight] = amounts.map(a => parseInt(a) || 0);
+        
+        const bigInput = existingRow.querySelector('.bid-input[data-type="big"]');
+        const smallInput = existingRow.querySelector('.bid-input[data-type="small"]');
+        const bigIboxInput = existingRow.querySelector('.bid-input[data-type="big-ibox"]');
+        const smallIboxInput = existingRow.querySelector('.bid-input[data-type="small-ibox"]');
+        const straightInput = existingRow.querySelector('.bid-input[data-type="straight"]');
+
+        bigInput.value = (parseInt(bigInput.value) || 0) + big;
+        smallInput.value = (parseInt(smallInput.value) || 0) + small;
+        bigIboxInput.value = (parseInt(bigIboxInput.value) || 0) + bigIbox;
+        smallIboxInput.value = (parseInt(smallIboxInput.value) || 0) + smallIbox;
+        straightInput.value = (parseInt(straightInput.value) || 0) + straight;
+
+        calculateTotal();
         return;
     }
 
@@ -86,8 +117,11 @@ function addNewBidRow(number, amounts = [0, 0, 0, 0]) {
     const newRow = tableBody.insertRow();
     newRow.setAttribute('data-number', num);
     
-    // Use an empty string for zero values so the placeholder is visible, otherwise show the number
-    const [big, small, bigIbox, smallIbox] = amounts.map(a => parseInt(a) || 0);
+    // Destructuring 5 amounts
+    const [big, small, bigIbox, smallIbox, straight] = amounts.map(a => parseInt(a) || 0);
+
+    // Helper to format value for input field (empty string if 0, number otherwise)
+    const formatValue = (amount) => amount > 0 ? amount : '';
 
     newRow.innerHTML = `
         <td class="bid-number-cell">
@@ -97,29 +131,32 @@ function addNewBidRow(number, amounts = [0, 0, 0, 0]) {
             ${num}
         </td>
         <td>
-            <input type="number" class="bid-input" data-type="big" min="0" step="1" value="${big > 0 ? big : ''}" onchange="calculateTotal()" onkeyup="calculateTotal()">
+            <input type="number" class="bid-input" data-type="big" min="0" step="1" value="${formatValue(big)}" onchange="calculateTotal()" onkeyup="calculateTotal()">
         </td>
         <td>
-            <input type="number" class="bid-input" data-type="small" min="0" step="1" value="${small > 0 ? small : ''}" onchange="calculateTotal()" onkeyup="calculateTotal()">
+            <input type="number" class="bid-input" data-type="small" min="0" step="1" value="${formatValue(small)}" onchange="calculateTotal()" onkeyup="calculateTotal()">
         </td>
         <td>
-            <input type="number" class="bid-input" data-type="big-ibox" min="0" step="1" value="${bigIbox > 0 ? bigIbox : ''}" onchange="calculateTotal()" onkeyup="calculateTotal()">
+            <input type="number" class="bid-input" data-type="big-ibox" min="0" step="1" value="${formatValue(bigIbox)}" onchange="calculateTotal()" onkeyup="calculateTotal()">
         </td>
         <td>
-            <input type="number" class="bid-input" data-type="small-ibox" min="0" step="1" value="${smallIbox > 0 ? smallIbox : ''}" onchange="calculateTotal()" onkeyup="calculateTotal()">
+            <input type="number" class="bid-input" data-type="small-ibox" min="0" step="1" value="${formatValue(smallIbox)}" onchange="calculateTotal()" onkeyup="calculateTotal()">
+        </td>
+        <td>
+            <input type="number" class="bid-input" data-type="straight" min="0" step="1" value="${formatValue(straight)}" onchange="calculateTotal()" onkeyup="calculateTotal()">
         </td>
     `;
     
     // Set focus on the first input of the new row if no amounts were provided
-    if (big === 0 && small === 0 && bigIbox === 0 && smallIbox === 0) {
+    if (amounts.every(a => a === 0)) {
         newRow.querySelector('.bid-input[data-type="big"]').focus();
     }
 
-    calculateTotal(); // Recalculate total
+    calculateTotal();
 }
 
 /**
- * Processes the multi-line chunk bidding input.
+ * Processes the multi-line chunk bidding input, handling both straight and Roll/System Entry.
  */
 function processChunkBids() {
     const chunkInput = document.getElementById('chunkBidsInput');
@@ -135,85 +172,89 @@ function processChunkBids() {
         const trimmedLine = line.trim();
         if (trimmedLine === '') return;
 
-        // Split by hyphen to check for amount values
         const parts = trimmedLine.split('-'); 
-        const number = parts[0];
+        const numberInput = parts[0].toUpperCase(); // Normalize R/X to upper case
         
-        // Basic validation for 4-digit number
-        if (!/^\d{4}$/.test(number)) {
-            console.warn(`Skipping invalid format: ${line}`);
-            return;
-        }
-        
-        // **FIXED LOGIC START**
-        
+        // --- STEP 1: Parse Amounts ---
+        // Extract 5 possible amounts. Default to 0 if not present or invalid.
         const big = parseInt(parts[1]) || 0;
         const small = parseInt(parts[2]) || 0;
         const bigIbox = parseInt(parts[3]) || 0;
         const smallIbox = parseInt(parts[4]) || 0;
+        const straight = parseInt(parts[5]) || 0; 
 
-        // Determine if amounts were explicitly provided (line had at least one hyphen)
+        // Check if any positive amount was provided (or if only the number was provided)
+        const hasPositiveAmount = (big + small + bigIbox + smallIbox + straight) > 0;
         const amountsProvided = parts.length > 1;
 
-        if (!amountsProvided) {
-            // Case 1: Only the number is provided (e.g., "1234")
-            addNewBidRow(number, [0, 0, 0, 0]);
-            addedCount++;
-        } else if (big > 0 || small > 0 || bigIbox > 0 || smallIbox > 0) {
-            // Case 2: Number and positive amounts are provided (e.g., "1234-1-1")
-            addNewBidRow(number, [big, small, bigIbox, smallIbox]);
-            addedCount++;
-        } else if (amountsProvided && (big === 0 && small === 0 && bigIbox === 0 && smallIbox === 0)) {
-            // Case 3: Number and explicit zero amounts are provided (e.g., "1234-0-0"). 
-            // We should still add this, as the user might want to edit it.
-            addNewBidRow(number, [0, 0, 0, 0]);
-            addedCount++;
+        if (!/^[0-9RX]{4}$/.test(numberInput) || (numberInput.match(/[RX]/g) || []).length > 1) {
+             console.warn(`Skipping invalid format or multi-roll: ${line}`);
+             return; // Skip invalid numbers or numbers with multiple R/X
         }
         
-        // **FIXED LOGIC END**
+        let numbersToProcess = [];
+
+        // --- STEP 2: Handle Roll/System Entry Expansion ---
+        if (numberInput.includes('R') || numberInput.includes('X')) {
+            // Expand into 10 numbers
+            numbersToProcess = expandRollNumbers(numberInput);
+        } else if (/^\d{4}$/.test(numberInput)) {
+            // Standard 4-digit number
+            numbersToProcess.push(numberInput);
+        }
+
+        // --- STEP 3: Add Rows for all Expanded Numbers ---
+        numbersToProcess.forEach(number => {
+            if (!amountsProvided && !hasPositiveAmount) {
+                 // Case A: Only the number/roll is provided (e.g., "R234"). Add all 10 with 0 amounts.
+                 addNewBidRow(number, [0, 0, 0, 0, 0]);
+            } else if (hasPositiveAmount) {
+                 // Case B: Number/Roll and positive amounts are provided (e.g., "1234-1-1-0-0-1" or "R234-1-1-0-0-1").
+                 // The *same* amounts are applied to all 10 expanded numbers.
+                 addNewBidRow(number, [big, small, bigIbox, smallIbox, straight]);
+            } else if (amountsProvided) {
+                 // Case C: Explicit zero amounts are provided (e.g., "1234-0-0-0-0-0").
+                 addNewBidRow(number, [0, 0, 0, 0, 0]);
+            }
+            addedCount++;
+        });
     });
 
     if (addedCount > 0) {
         chunkInput.value = ''; // Clear the input field after successful addition
     } else {
-        alert("No valid numbers or bids were added. Please check your input format (e.g., 1234 or 1234-1-1).");
+        alert("No valid numbers or bids were added. Please check your input format (e.g., 1234 or R234-1-1-0-0-0).");
     }
     
     calculateTotal();
 }
 
 
-/**
- * Removes a bid row from the table.
- * @param {HTMLElement} buttonElement - The remove button that was clicked.
- */
 function removeBidRow(buttonElement) {
     const row = buttonElement.closest('tr');
     if (confirm(`Are you sure you want to remove number ${row.getAttribute('data-number')}?`)) {
         row.remove();
-        calculateTotal(); // Recalculate total
+        calculateTotal();
     }
 }
 
 // Event Listener for the 'Add Bids' button
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if we are on the bidding form page
     const addButton = document.getElementById('addNewNumberBtn');
     if (addButton) {
-        // Connect the button to the new chunk processing function
         addButton.addEventListener('click', processChunkBids);
         
-        // Initialize with a placeholder row if the table is empty
         const tableBody = document.getElementById('biddingTableBody');
         if (tableBody && tableBody.rows.length === 0) {
-            addNewBidRow('1234', [1, 0, 0, 0]); // Add a sample number on load
+            // Updated sample number: now includes a Roll example to show the feature
+            addNewBidRow('1234', [1, 0, 0, 0, 1]); 
         }
         
-        calculateTotal(); // Calculate initial total
+        calculateTotal();
     }
 });
 
-// --- FUNCTION TO COLLECT AND STORE BIDS (UPDATED) ---
+// --- FUNCTION TO COLLECT AND STORE BIDS (UNCHANGED) ---
 
 /**
  * Collects all current bids, stores them in localStorage, and redirects to the receipt page.
@@ -227,22 +268,23 @@ function submitBids() {
     
     tableRows.forEach(row => {
         const number = row.getAttribute('data-number');
-        // Get the IBOX variation count for the current number
         const iboxVariation = getIboxVariation(number); 
         
-        // Get all four input fields
+        // Get all five input fields
         const bigInput = row.querySelector('.bid-input[data-type="big"]');
         const smallInput = row.querySelector('.bid-input[data-type="small"]');
         const bigIboxInput = row.querySelector('.bid-input[data-type="big-ibox"]');
         const smallIboxInput = row.querySelector('.bid-input[data-type="small-ibox"]');
+        const straightInput = row.querySelector('.bid-input[data-type="straight"]');
         
         // Convert to integer, default to 0
         const bigAmount = parseInt(bigInput.value) || 0;
         const smallAmount = parseInt(smallInput.value) || 0;
         const bigIboxAmount = parseInt(bigIboxInput.value) || 0;
         const smallIboxAmount = parseInt(smallIboxInput.value) || 0;
+        const straightAmount = parseInt(straightInput.value) || 0;
         
-        grandTotal += bigAmount + smallAmount + bigIboxAmount + smallIboxAmount;
+        grandTotal += bigAmount + smallAmount + bigIboxAmount + smallIboxAmount + straightAmount;
 
         // Add BIG/SML bids (Type is static)
         if (bigAmount > 0) {
@@ -259,6 +301,15 @@ function submitBids() {
                 amount: smallAmount.toFixed(2)
             });
         }
+
+        // Add STRAIGHT bid
+        if (straightAmount > 0) {
+            bids.push({
+                number: number,
+                type: 'STRAIGHT (4A)',
+                amount: straightAmount.toFixed(2)
+            });
+        }
         
         // Determine the type string for IBOX - only append suffix if > 1 variation
         let iboxTypeSuffix = (iboxVariation > 1) ? `(${iboxVariation})` : '';
@@ -267,7 +318,7 @@ function submitBids() {
         if (bigIboxAmount > 0) {
             bids.push({
                 number: number,
-                type: `BIG IBOX${iboxTypeSuffix}`, // Append variation
+                type: `BIG IBOX${iboxTypeSuffix}`, 
                 amount: bigIboxAmount.toFixed(2)
             });
         }
@@ -276,7 +327,7 @@ function submitBids() {
         if (smallIboxAmount > 0) {
             bids.push({
                 number: number,
-                type: `SML IBOX${iboxTypeSuffix}`, // Append variation
+                type: `SML IBOX${iboxTypeSuffix}`,
                 amount: smallIboxAmount.toFixed(2)
             });
         }
@@ -297,4 +348,4 @@ window.submitBids = submitBids;
 window.calculateTotal = calculateTotal;
 window.addNewBidRow = addNewBidRow;
 window.removeBidRow = removeBidRow;
-window.processChunkBids = processChunkBids; // Expose new function
+window.processChunkBids = processChunkBids;

@@ -28,8 +28,8 @@
 .bidding-table {
     width: 95%;
     border-collapse: collapse;
-    /* Ensure the table is wide enough to force a scroll on small screens */
-    min-width: 600px; 
+    /* UPDATED: Increased min-width to comfortably fit the 6 columns (Number + 5 Bets) */
+    min-width: 720px; 
     font-size: 1.0em; 
 }
 
@@ -49,7 +49,8 @@
     text-transform: uppercase;
 }
 
-/* HIDES the header for the removed Action column */
+/* HIDES the header for the last column (which is now the hidden action column) */
+/* The last th will be the empty cell after STRAIGHT(4A) which holds no content, so we hide it. */
 .bidding-table thead th:last-child {
     display: none;
 }
@@ -192,7 +193,8 @@
     }
     
     .bidding-table {
-        min-width: 550px; /* Slightly reduce min-width, horizontal scroll is key */
+        /* UPDATED: Increased min-width for mobile view to ensure the new column is scrollable */
+        min-width: 650px; 
     }
 
     .table-responsive {
